@@ -26,6 +26,7 @@ def make_euclidean_backbone(
                 kernel_size=conv_kernel_size,
             )
         )
+        current_image_size -= conv_kernel_size - 1
         layers.append(activation)
         layers.append(pool)
         current_image_size //= pool_stride
