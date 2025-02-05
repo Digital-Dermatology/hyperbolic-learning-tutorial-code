@@ -29,6 +29,10 @@ def evaluate(
             metrics(outputs, labels.to(device))
 
 
+def print_metrics(metrics: MetricCollection) -> None:
+    print({k.replace("Multiclass", ""): v.item() for k, v in metrics.compute().items()})
+
+
 if __name__ == "__main__":
     device = torch.device(get_available_device())
     transform = torchvision.transforms.Compose(
@@ -73,8 +77,7 @@ if __name__ == "__main__":
 
     evaluate(loader=test_dataloader, model=convnet, metrics=metrics, device=device)
     print("Metrics before training:")
-    print(metrics.compute())
-    metrics.reset()
+    print_metrics(metrics)
 
     criterion = torch.nn.CrossEntropyLoss()
     criterion.to(device)
@@ -89,5 +92,4 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
         evaluate(loader=test_dataloader, model=convnet, metrics=metrics, device=device)
-        print(metrics.compute())
-        metrics.reset()
+        print_metrics(metrics)
