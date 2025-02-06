@@ -5,7 +5,7 @@ from torch import Tensor
 
 
 class HMLR(HLinear):
-    """Poincare multinomial logistic regression layer"""
+    """Poincare multinomial logistic regression layer."""
 
     def forward(self, x: ManifoldTensor) -> Tensor:
         check_if_manifolds_match(layer=self, input=x)

@@ -1,17 +1,14 @@
-import os
-
 import torch
 import torchvision
 from hypll.optim import RiemannianAdam
-from torch.optim import Adam
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassAccuracy, MulticlassMatthewsCorrCoef
 from tqdm import tqdm
 
 from src.nets.euclidean import make_euclidean_net
-from src.nets.last_hyperbolic import make_last_hyperbolic_net
 from src.nets.fully_hyperbolic import make_fully_hyperbolic_net
-from src.utils.torch_utils import get_available_device, set_seeds
+from src.nets.last_hyperbolic import make_last_hyperbolic_net
+from src.utils.torch_utils import get_available_device
 
 num_workers = 0
 batch_size = 128
@@ -76,7 +73,11 @@ if __name__ == "__main__":
     )
     metrics.to(device)
 
-    parameters = {"out_channels": num_classes, "conv_channels": (128, 128), "fc_channels": (128,)}
+    parameters = {
+        "out_channels": num_classes,
+        "conv_channels": (128, 128),
+        "fc_channels": (128,),
+    }
     models = [
         make_euclidean_net(**parameters),
         make_last_hyperbolic_net(**parameters),
@@ -107,5 +108,7 @@ if __name__ == "__main__":
                 loss.backward()
                 optimizer.step()
             print_metrics(metrics, "Train: ")
-            evaluate(loader=test_dataloader, model=model, metrics=metrics, device=device)
+            evaluate(
+                loader=test_dataloader, model=model, metrics=metrics, device=device
+            )
             print_metrics(metrics, "Test: ")

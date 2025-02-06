@@ -3,7 +3,7 @@ from typing import Sequence, Tuple
 import torch
 from hypll.manifolds import Manifold
 from hypll.manifolds.poincare_ball import Curvature, PoincareBall
-from hypll.nn import HLinear, HConvolution2d, HMaxPool2d, HReLU
+from hypll.nn import HConvolution2d, HLinear, HMaxPool2d, HReLU
 from torch.nn import Flatten, Sequential
 
 from ..layers.hmlr import HMLR
@@ -22,7 +22,9 @@ def make_hyperbolic_backbone(
 ) -> Tuple[Sequential, int]:
     layers = [ToManifold(manifold=manifold)]
     all_conv_channels = (in_channels, *conv_channels)
-    pool = HMaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride, manifold=manifold)
+    pool = HMaxPool2d(
+        kernel_size=pool_kernel_size, stride=pool_stride, manifold=manifold
+    )
     activation = HReLU(manifold=manifold)
     current_image_size = torch.tensor(image_size)
     for i in range(len(conv_channels)):
@@ -43,7 +45,9 @@ def make_hyperbolic_backbone(
     for i in range(len(fc_channels)):
         layers.append(
             HLinear(
-                in_features=all_fc_channels[i], out_features=all_fc_channels[i + 1], manifold=manifold
+                in_features=all_fc_channels[i],
+                out_features=all_fc_channels[i + 1],
+                manifold=manifold,
             )
         )
         layers.append(activation)
@@ -56,6 +60,13 @@ def make_fully_hyperbolic_net(
     **kwargs,
 ) -> Sequential:
     manifold = PoincareBall(c=Curvature(requires_grad=True))
-    backbone, backbone_channels = make_hyperbolic_backbone(*args, manifold=manifold, **kwargs)
-    head = HMLR(in_features=backbone_channels, out_features=out_channels, manifold=manifold, bias=True)
+    backbone, backbone_channels = make_hyperbolic_backbone(
+        *args, manifold=manifold, **kwargs
+    )
+    head = HMLR(
+        in_features=backbone_channels,
+        out_features=out_channels,
+        manifold=manifold,
+        bias=True,
+    )
     return Sequential(backbone, head)

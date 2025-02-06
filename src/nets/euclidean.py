@@ -34,9 +34,7 @@ def make_euclidean_backbone(
     all_fc_channels = (all_conv_channels[-1] * current_image_size.prod(), *fc_channels)
     for i in range(len(fc_channels)):
         layers.append(
-            Linear(
-                in_features=all_fc_channels[i], out_features=all_fc_channels[i + 1]
-            )
+            Linear(in_features=all_fc_channels[i], out_features=all_fc_channels[i + 1])
         )
         layers.append(activation)
     return Sequential(*layers), all_fc_channels[-1]
