@@ -2,14 +2,16 @@ import os
 
 import torch
 import torchvision
-from torch.optim import AdamW
-from torchinfo import summary
+from hypll.optim import RiemannianAdam
+from torch.optim import Adam
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassAccuracy, MulticlassMatthewsCorrCoef
 from tqdm import tqdm
 
-from nets.euclidean import make_euclidean_convnet
-from utils.torch_utils import get_available_device, set_seeds
+from src.nets.euclidean import make_euclidean_net
+from src.nets.last_hyperbolic import make_last_hyperbolic_net
+from src.nets.fully_hyperbolic import make_fully_hyperbolic_net
+from src.utils.torch_utils import get_available_device, set_seeds
 
 num_workers = 0
 batch_size = 128
@@ -29,8 +31,11 @@ def evaluate(
             metrics(outputs, labels.to(device))
 
 
-def print_metrics(metrics: MetricCollection) -> None:
-    print({k.replace("Multiclass", ""): v.item() for k, v in metrics.compute().items()})
+def print_metrics(metrics: MetricCollection, prefix: str = "") -> None:
+    print(
+        prefix,
+        {k.replace("Multiclass", ""): v.item() for k, v in metrics.compute().items()},
+    )
 
 
 if __name__ == "__main__":
@@ -63,10 +68,6 @@ if __name__ == "__main__":
     assert test_dataset.classes == classes
     num_classes = len(classes)
 
-    convnet = make_euclidean_convnet(out_channels=num_classes, conv_channels=(64, 64), fc_channels=(128,))
-    convnet.to(device)
-    summary(convnet)
-
     metrics = MetricCollection(
         [
             MulticlassAccuracy(num_classes=num_classes),
@@ -75,21 +76,36 @@ if __name__ == "__main__":
     )
     metrics.to(device)
 
-    evaluate(loader=test_dataloader, model=convnet, metrics=metrics, device=device)
-    print("Metrics before training:")
-    print_metrics(metrics)
+    parameters = {"out_channels": num_classes, "conv_channels": (128, 128), "fc_channels": (128,)}
+    models = [
+        make_euclidean_net(**parameters),
+        make_last_hyperbolic_net(**parameters),
+        make_fully_hyperbolic_net(**parameters),
+    ]
 
-    criterion = torch.nn.CrossEntropyLoss()
-    criterion.to(device)
-    optimizer = AdamW(convnet.parameters())
+    for model in models:
+        model.to(device)
+        print(model)
 
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch + 1} of {num_epochs}")
-        for data, labels in tqdm(train_dataloader):
-            optimizer.zero_grad()
-            outputs = convnet(data.to(device))
-            loss = criterion(outputs, labels.to(device))
-            loss.backward()
-            optimizer.step()
-        evaluate(loader=test_dataloader, model=convnet, metrics=metrics, device=device)
+        evaluate(loader=test_dataloader, model=model, metrics=metrics, device=device)
+        print("Metrics before training:")
         print_metrics(metrics)
+
+        criterion = torch.nn.CrossEntropyLoss()
+        criterion.to(device)
+        optimizer = RiemannianAdam(model.parameters(), lr=1e-3)
+
+        for epoch in range(num_epochs):
+            print(f"Epoch {epoch + 1} of {num_epochs}")
+            metrics.reset()
+            for data, labels in tqdm(train_dataloader):
+                optimizer.zero_grad()
+                outputs = model(data.to(device))
+                labels = labels.to(device)
+                metrics(outputs, labels)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+            print_metrics(metrics, "Train: ")
+            evaluate(loader=test_dataloader, model=model, metrics=metrics, device=device)
+            print_metrics(metrics, "Test: ")

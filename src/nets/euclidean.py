@@ -1,7 +1,7 @@
 from typing import Sequence, Tuple
 
 import torch
-from torch import nn
+from torch.nn import Conv2d, Flatten, Linear, MaxPool2d, ReLU, Sequential
 
 
 def make_euclidean_backbone(
@@ -12,15 +12,15 @@ def make_euclidean_backbone(
     pool_kernel_size: int = 2,
     pool_stride: int = 2,
     image_size: Tuple[int, int] = (32, 32),
-) -> Tuple[nn.Sequential, int]:
+) -> Tuple[Sequential, int]:
     all_conv_channels = (in_channels, *conv_channels)
-    pool = nn.MaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride)
-    activation = nn.ReLU()
+    pool = MaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride)
+    activation = ReLU()
     current_image_size = torch.tensor(image_size)
     layers = []
     for i in range(len(conv_channels)):
         layers.append(
-            nn.Conv2d(
+            Conv2d(
                 in_channels=all_conv_channels[i],
                 out_channels=all_conv_channels[i + 1],
                 kernel_size=conv_kernel_size,
@@ -30,24 +30,23 @@ def make_euclidean_backbone(
         layers.append(activation)
         layers.append(pool)
         current_image_size //= pool_stride
-    layers.append(nn.Flatten())
+    layers.append(Flatten())
     all_fc_channels = (all_conv_channels[-1] * current_image_size.prod(), *fc_channels)
     for i in range(len(fc_channels)):
         layers.append(
-            nn.Linear(
+            Linear(
                 in_features=all_fc_channels[i], out_features=all_fc_channels[i + 1]
             )
         )
         layers.append(activation)
-    return nn.Sequential(*layers), all_fc_channels[-1]
+    return Sequential(*layers), all_fc_channels[-1]
 
 
-def make_euclidean_convnet(
+def make_euclidean_net(
     out_channels: int = 1,
     *args,
     **kwargs,
-) -> nn.Sequential:
+) -> Sequential:
     backbone, backbone_channels = make_euclidean_backbone(*args, **kwargs)
-    return nn.Sequential(
-        backbone, nn.Linear(in_features=backbone_channels, out_features=out_channels)
-    )
+    head = Linear(in_features=backbone_channels, out_features=out_channels)
+    return Sequential(backbone, head)
