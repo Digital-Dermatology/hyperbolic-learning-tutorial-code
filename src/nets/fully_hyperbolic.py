@@ -19,6 +19,7 @@ def make_hyperbolic_backbone(
     pool_kernel_size: int = 2,
     pool_stride: int = 2,
     image_size: Tuple[int, int] = (32, 32),
+    last_activation: bool = False,
 ) -> Tuple[Sequential, int]:
     layers = [ToManifold(manifold=manifold)]
     all_conv_channels = (in_channels, *conv_channels)
@@ -50,7 +51,8 @@ def make_hyperbolic_backbone(
                 manifold=manifold,
             )
         )
-        layers.append(activation)
+        if i + 1 < len(fc_channels) or last_activation:
+            layers.append(activation)
     return Sequential(*layers), all_fc_channels[-1]
 
 

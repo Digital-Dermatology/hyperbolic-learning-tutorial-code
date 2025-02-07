@@ -12,6 +12,7 @@ def make_euclidean_backbone(
     pool_kernel_size: int = 2,
     pool_stride: int = 2,
     image_size: Tuple[int, int] = (32, 32),
+    last_activation: bool = False,
 ) -> Tuple[Sequential, int]:
     all_conv_channels = (in_channels, *conv_channels)
     pool = MaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride)
@@ -36,7 +37,8 @@ def make_euclidean_backbone(
         layers.append(
             Linear(in_features=all_fc_channels[i], out_features=all_fc_channels[i + 1])
         )
-        layers.append(activation)
+        if i + 1 < len(fc_channels) or last_activation:
+            layers.append(activation)
     return Sequential(*layers), all_fc_channels[-1]
 
 
