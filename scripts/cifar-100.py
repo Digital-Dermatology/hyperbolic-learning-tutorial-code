@@ -1,6 +1,11 @@
+from typing import Tuple
+
+import pandas as pd
+import plotly.express as px
 import torch
 import torchvision
 from hypll.optim import RiemannianAdam
+from hypll.tensors import ManifoldTensor
 from torchmetrics import MetricCollection
 from torchmetrics.classification import MulticlassAccuracy, MulticlassMatthewsCorrCoef
 from tqdm import tqdm
@@ -33,6 +38,25 @@ def print_metrics(metrics: MetricCollection, prefix: str = "") -> None:
         prefix,
         {k.replace("Multiclass", ""): v.item() for k, v in metrics.compute().items()},
     )
+
+
+def compute_embeddings(
+    loader: torch.utils.data.DataLoader, model: torch.nn.Module, device: torch.device
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    embeddings, predictions, labels = [], [], []
+    with torch.no_grad():
+        for data, labels_batch in loader:
+            embeddings_batch = model[:-1](data.to(device))
+            predictions_batch = model[-1](embeddings_batch).argmax(dim=-1)
+            if isinstance(embeddings_batch, ManifoldTensor):
+                embeddings_batch = embeddings_batch.tensor
+            embeddings.append(embeddings_batch)
+            predictions.append(predictions_batch)
+            labels.append(labels_batch)
+    embeddings = torch.cat(embeddings, dim=0)
+    predictions = torch.cat(predictions, dim=0)
+    labels = torch.cat(labels, dim=0)
+    return embeddings, predictions, labels
 
 
 if __name__ == "__main__":
@@ -76,15 +100,15 @@ if __name__ == "__main__":
     parameters = {
         "out_channels": num_classes,
         "conv_channels": (128, 128),
-        "fc_channels": (128,),
+        "fc_channels": (128, 2),
     }
-    models = [
-        make_euclidean_net(**parameters),
-        make_last_hyperbolic_net(**parameters),
-        make_fully_hyperbolic_net(**parameters),
-    ]
+    models = {
+        "euclidean": make_euclidean_net(**parameters),
+        "last_hyperbolic": make_last_hyperbolic_net(**parameters),
+        "fully_hyperbolic": make_fully_hyperbolic_net(**parameters),
+    }
 
-    for model in models:
+    for model_name, model in models.items():
         model.to(device)
         print(model)
 
@@ -112,3 +136,17 @@ if __name__ == "__main__":
                 loader=test_dataloader, model=model, metrics=metrics, device=device
             )
             print_metrics(metrics, "Test: ")
+
+        embeddings, predictions, labels = compute_embeddings(
+            loader=test_dataloader, model=model, device=device
+        )
+        df = pd.DataFrame(embeddings.cpu().numpy())
+        df["prediction"] = predictions.cpu().numpy()
+        df["label"] = labels.cpu().numpy()
+        fig = px.scatter(
+            data_frame=df,
+            x=0,
+            y=1,
+            color="label",
+        )
+        fig.write_html(f"{model_name}.html")
