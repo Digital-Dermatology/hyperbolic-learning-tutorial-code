@@ -142,11 +142,6 @@ if __name__ == "__main__":
         )
         df = pd.DataFrame(embeddings.cpu().numpy())
         df["prediction"] = predictions.cpu().numpy()
-        df["label"] = labels.cpu().numpy()
-        fig = px.scatter(
-            data_frame=df,
-            x=0,
-            y=1,
-            color="label",
-        )
+        df["label"] = [classes[i] for i in labels.cpu().numpy()]
+        fig = px.scatter(data_frame=df, x=0, y=1, color="label")
         fig.write_html(f"{model_name}.html")
