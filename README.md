@@ -11,6 +11,10 @@ it is strongly recommeded to run the tutorial on Google Colab or Kaggle.
 If you wish to execute the code locally, you are welcome to do so,
 but it will be impossible us to provide individual support.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/hyplia.ipynb)
+[![Open In Kaggle](https://img.shields.io/badge/Open%20in%20Kaggle-blue?logo=kaggle&&labelColor=gray)
+](https://kaggle.com/kernels/welcome?src=https://github.com/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/hyplia.ipynb)
+
 ### Requirements
 
 The HypLL library used in this tutorial requires `python>=3.10`.
