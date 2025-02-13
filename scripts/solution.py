@@ -157,4 +157,4 @@ if __name__ == "__main__":
                 x1=radius,
                 y1=radius,
             )
-        fig.write_html(f"{model_name}.html")
+        fig.write_html(f"{model_name}_{num_epochs}.html")
