@@ -144,4 +144,17 @@ if __name__ == "__main__":
         df["prediction"] = predictions.cpu().numpy()
         df["label"] = [classes[i] for i in labels.cpu().numpy()]
         fig = px.scatter(data_frame=df, x=0, y=1, color="label")
+        fig.update_layout(yaxis_scaleanchor="x")
+        if model_name != "euclidean":
+            curvature = model[-1].manifold.c().item()
+            radius = curvature**-0.5
+            fig.add_shape(
+                type="circle",
+                xref="x",
+                yref="y",
+                x0=-radius,
+                y0=-radius,
+                x1=radius,
+                y1=radius,
+            )
         fig.write_html(f"{model_name}.html")
