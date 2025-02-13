@@ -71,10 +71,10 @@ if __name__ == "__main__":
         ]
     )
 
-    train_dataset = torchvision.datasets.CIFAR100(
+    train_dataset = torchvision.datasets.CIFAR10(
         root="data", train=True, download=True, transform=transform
     )
-    test_dataset = torchvision.datasets.CIFAR100(
+    test_dataset = torchvision.datasets.CIFAR10(
         root="data", train=False, download=True, transform=transform
     )
 
