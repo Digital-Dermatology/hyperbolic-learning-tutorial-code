@@ -12,9 +12,9 @@ If you wish to execute the code locally, you are welcome to do so,
 but it will be impossible to provide individual support for everyone
 during the tutorial.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/hyplia.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/tutorial.ipynb)
 [![Open In Kaggle](https://img.shields.io/badge/Open%20in%20Kaggle-blue?logo=kaggle&&labelColor=gray)
-](https://kaggle.com/kernels/welcome?src=https://github.com/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/hyplia.ipynb)
+](https://kaggle.com/kernels/welcome?src=https://github.com/Digital-Dermatology/hyperbolic-learning-tutorial-code/blob/main/notebooks/tutorial.ipynb)
 
 ### Local installation
 
@@ -45,5 +45,5 @@ but could lead to unexpected errors in the last part of the tutorial.
 	```
 	jupyter-lab
 	```
-1. Select the `notebooks` folder and open `hyplia.ipynb`.
+1. Select the `notebooks` folder and open `tutorial.ipynb`.
 1. Follow the instructions and enjoy.
