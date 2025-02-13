@@ -99,8 +99,8 @@ if __name__ == "__main__":
 
     parameters = {
         "out_channels": num_classes,
-        "conv_channels": (128, 128),
-        "fc_channels": (128, 2),
+        "conv_channels": (32, 64, 128),
+        "fc_channels": (128, 32, 2),
     }
     models = {
         "euclidean": make_euclidean_net(**parameters),
