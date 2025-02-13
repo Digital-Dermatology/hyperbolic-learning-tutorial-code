@@ -1,5 +1,6 @@
 .idea
 data
+assets
 __pycache__
 *.html
 *.pdf
